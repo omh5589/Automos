@@ -6,13 +6,14 @@
 # | | | | |_| | | | \ \_/ /| |  | \ \_/ /\__/ /
 # \_| |_/\___/  \_/  \___/ \_|  |_/\___/\____/ 
 # AUTHORS: Ren, Orion
-# VERSION: 3.2
+# VERSION: 3.1
 # DESC: Software for the TI-NSPIRE CX-II CAS. Calculates transistor current for NMOS and PMOS MOSFETs.
 # ---------------------------------
 import math
 
 COX_CONSTANT = (8.854E-14)
 SILICON_EPISOLON = 3.97
+
 
 def metric_amps(value, suffix = "amps"):
     metric_prefixes = [
@@ -141,13 +142,30 @@ def post_equation(equation_result):
     print("ID = " + metric_amps(equation_result))
     input("Enter to continue...")
 
+def findK(ECP,LP,inp):
+    W = float(input("W (um) = ")) * 1E-4  # because we move from nm -> centimeters
+    VSAT = float(input("VSAT (million cm) = ")) * 1E6
+
+    TOX = float(input("T_OX (nm) = ")) * 1E-7
+
+    COX = SILICON_EPISOLON * COX_CONSTANT / (TOX)
+    print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
+    kn = (2 * W * VSAT * COX) / (ECP * LP)
+    if inp == "1" or inp == "3":
+        print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
+    else:
+        print("SOLVED: KP =", metric_amps(kn, "A/v^2"))
+    return kn
+
 while 1:
     print("Enter device parameters...")
 
     y = float(input("y = "))
     Φ2f = float(input("Φ2f = "))
     λ = float(input("λ = "))
-
+    kn = 0.0
+    kp = 0.0
+    usePrevK = "N"
     while 1:
 
         print("(1) LCM NMOS ")
@@ -157,66 +175,61 @@ while 1:
         print("(5) Change device parameters ")
 
         inp = input("(1), (2), (3), (4), (5): ")
-
-        if(inp == "5"):
+        validEq = ["1","2","3","4"]
+        if(not (inp in validEq)):
             break
-
+        is_nmos = (inp == "1" or inp == "3")
         VG = float(input("VG = "))
         VD = float(input("VD = "))
         VS = float(input("VS = "))
         VB = float(input("VB = "))
 
-        if(inp == "1"):
+        if is_nmos:
             VTNO = is_in_enhancement(float(input("VTNO = ")), True)
+        else:
+            VTPO = is_in_enhancement(float(input("VTPO = ")), False)
 
-            kn = float(input("kn = "))
+        if kn != 0.0 or kp != 0.0:
+            if is_nmos:
+                usePrevK = input("use previous Kn value? (default = 0) Y or N: ")
+            else:
+                usePrevK = input("use previous Kp value? (default = 0) Y or N: ")
+        if usePrevK == "N":
+            GivenK = input("is K given? Y or N: ")
+            if (GivenK == "N"):
+                if is_nmos:
+                    ECN = float(input("ECN = "))
+                    LN = float(input("LN = "))
+                    kn = findK(ECN, LN, inp)
+                else:
+                    ECP = float(input("ECP = "))
+                    LP = float(input("LP = "))
+                    kp = findK(ECP, LP, inp)
+            else:
+                if (inp == "3"):
+                    ECN = float(input("ECN = "))
+                    LN = float(input("LN = "))
+                elif (inp == "4"):
+                    ECP = float(input("ECP = "))
+                    LP = float(input("LP = "))
 
+                if is_nmos:
+                    kn = float(input("kN = "))
+                else:
+                    kp = float(input("kP = "))
+
+        if(inp == "1"):
             post_equation(LCM_NMOS(VG, VD, VS, VB, VTNO, y, Φ2f, kn, λ))
             continue
 
         if(inp == "2"):
-            VTPO = is_in_enhancement(float(input("VTPO = ")), False)
-
-            kp = float(input("kp = "))
-
-            post_equation(LCM_PMOS(VG, VD, VS, VB, VTPO, y, Φ2f, kp, λ))
+            post_equation(LCM_PMOS(VG, VD, VS, VB, VTPO, y, Φ2f, kp, λ,))
             continue
 
         if(inp == "3"):
-            VTNO = is_in_enhancement(float(input("VTNO = ")), True)
-
-            # kn = float(input("kn = "))
-            W = float(input("W (um) = ")) * 1E-4 # because we move from nm -> centimeters
-            # L = float(input("L = "))
-            VSAT = float(input("VSAT (million cm) = ")) * 1E6
-
-            TOX = float(input("T_OX (nm) = ")) * 1E-7
-            ECN = float(input("ECN = "))
-            LN = float(input("LN = "))
-
-            COX = SILICON_EPISOLON*COX_CONSTANT/(TOX)
-            print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
-            kn = (2*W*VSAT*COX)/(ECN*LN)
-            print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
-
             post_equation(SCM_NMOS(VG, VD, VS, VB, VTNO, y, Φ2f, kn, λ, ECN, LN))
-
+            continue
         if(inp == "4"):
-            VTPO = is_in_enhancement(float(input("VTPO = ")), False)
-
-            # kp = float(input("kp = "))
-            W = float(input("W (um) = ")) * 1E-4 # because we move from nm -> centimeters
-            # L = float(input("L = "))
-            VSAT = float(input("VSAT (million cm) = ")) * 1E6
-    
-            TOX = float(input("T_OX (nm) = ")) * 1E-7
-            ECP = float(input("ECP = "))
-            LP = float(input("LP = "))
-
-            COX = SILICON_EPISOLON*COX_CONSTANT/(TOX)
-            print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
-            kn = (2*W*VSAT*COX)/(ECP*LP)
-            print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
-
             post_equation(SCM_PMOS(VG, VD, VS, VB, VTPO, y, Φ2f, kp, λ, ECP, LP))
+            continue
 
