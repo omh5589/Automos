@@ -215,8 +215,8 @@ while 1:
 
             COX = SILICON_PERMEABILITY*COX_CONSTANT/(TOX)
             print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
-            kn = (2*W*VSAT*COX)/(ECP*LP)
-            print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
+            kp = (2*W*VSAT*COX)/(ECP*LP)
+            print("SOLVED: KN =", metric_amps(kp, "A/v^2"))
 
             post_equation(SCM_PMOS(VG, VD, VS, VB, VTPO, y, Φ2f, kp, λ, ECP, LP))
 
