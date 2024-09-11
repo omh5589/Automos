@@ -12,7 +12,7 @@
 import math
 
 COX_CONSTANT = (8.854E-14)
-SILICON_EPISOLON = 3.97
+SILICON_PERMEABILITY = 3.97
 
 def metric_amps(value, suffix = "amps"):
     metric_prefixes = [
@@ -32,7 +32,7 @@ def metric_amps(value, suffix = "amps"):
             converted_value = value / factor
             return f"{converted_value:.5f} {prefix_full}{suffix}"
 
-    return f"{value} {suffix}"  # Default case for extremely small values
+    return f"{value} {suffix}"  # Default case for very large or small values
 
 def LCM_NMOS(VG, VD, VS, VB, VTNO, y, Φ2f, kn, λ):
     VGS = VG - VS
@@ -194,7 +194,7 @@ while 1:
             ECN = float(input("ECN = "))
             LN = float(input("LN = "))
 
-            COX = SILICON_EPISOLON*COX_CONSTANT/(TOX)
+            COX = SILICON_PERMEABILITY*COX_CONSTANT/(TOX)
             print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
             kn = (2*W*VSAT*COX)/(ECN*LN)
             print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
@@ -213,7 +213,7 @@ while 1:
             ECP = float(input("ECP = "))
             LP = float(input("LP = "))
 
-            COX = SILICON_EPISOLON*COX_CONSTANT/(TOX)
+            COX = SILICON_PERMEABILITY*COX_CONSTANT/(TOX)
             print("SOLVED: COX =", metric_amps(COX, "F/cm^2"))
             kn = (2*W*VSAT*COX)/(ECP*LP)
             print("SOLVED: KN =", metric_amps(kn, "A/v^2"))
