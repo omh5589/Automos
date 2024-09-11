@@ -32,7 +32,7 @@ def metric_amps(value, suffix = "amps"):
             converted_value = value / factor
             return f"{converted_value:.5f} {prefix_full}{suffix}"
 
-    return f"{value} amps"  # Default case for extremely small values
+    return f"{value} {suffix}"  # Default case for extremely small values
 
 def LCM_NMOS(VG, VD, VS, VB, VTNO, y, Φ2f, kn, λ):
     VGS = VG - VS
